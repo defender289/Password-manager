@@ -1,5 +1,11 @@
 import sqlite3
 
+'''
+Things to add:
+1. password generator
+1. check if R U D has no errors if table has nothing
+'''
+
 #connects the file 'shooter.conf' to sqlite3
 db = sqlite3.connect('shooter.conf')
 
@@ -95,8 +101,6 @@ Returns:
     a list of categories available, indicated by a '->' in each line
 
     '''
-
-    print("The categories available are: ")
     #displays available categories
     result = db.execute("SELECT category FROM credentials")
     categories = result.fetchall()
@@ -105,21 +109,33 @@ Returns:
         str_cat = ''.join(tuple)
         print('-> ' + str_cat)
 
+def check_db_content():
+    result = db.execute("SELECT COUNT(*) FROM credentials")
+    check = result.fetchall()
+    if check:
+        pass
+    else:
+        print("Error, no entries in database.")
+
 def main():
     #creates a table in the db file if it doesn't already exist, to store categories and passwords
     db.execute("CREATE TABLE IF NOT EXISTS credentials (category TEXT, username TEXT, password TEXT)")
     while True:
         key = str(input("Please enter your master key: "))
         user = str(input('''Welcome! What would you like to do?:  
--> Create a new password (C) 
+-> Create new password (C)
+-> Input credentials (I) 
 -> Retrieve credentials (R) 
 -> Update exisiting credentials (U) 
 -> Delete existing credentials (D) 
 -> Quit (Q) \n'''
         ))
         
-        #creating credentials
+        #inputting credentials
         if user == 'C':
+            pass
+
+        elif user == 'I':
             category = str(input("What category would it be called?: "))
             new_username = str(input("What is your username?: "))
             confirmation_u = str(input("Please confirm your username: "))
@@ -141,6 +157,8 @@ def main():
             
         #retrieving credentials
         elif user == 'R':
+            check_db_content()
+            print("The categories available are: ")
             available_cat()
 
             category = str(input("What category are you retrieving?: "))
@@ -152,6 +170,8 @@ def main():
 
         #updating credentials
         elif user == 'U':
+            check_db_content()
+            print("The categories available are: ")
             available_cat()
             
             category = str(input("What category are you updating?: "))
@@ -176,16 +196,18 @@ def main():
 
         #deleting existing credentials
         elif user == 'D':
+            check_db_content()
+            print("The categories available are: ")
             available_cat()
 
             category = str(input("Which category do you want to delete?: "))
 
             #checks that categories aren't being deleted without permission
-            username = str(input("Please enter the username for " + category))
-            password = str(input("Please enter the password for " + category))
+            username = str(input("Please enter the username for " + category + ":"))
+            password = str(input("Please enter the password for " + category + ":"))
             security_user, security_pass = db_getter(category)
-            check_user = xor_encryption(security_user)
-            check_pass = xor_encryption(security_pass)
+            check_user = xor_encryption(security_user, key)
+            check_pass = xor_encryption(security_pass, key)
 
             if check_user == username and check_pass == password:
                 db_deleter(category)
